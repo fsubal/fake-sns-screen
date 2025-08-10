@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<title>note記事一覧モックジェネレータ</title>
+<style>
+  body {
+    background: #f5f7f9;
+    margin: 0;
+    padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif;
+    color: #14171a;
+  }
+  #app {
+    max-width: 600px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+  }
+  #controls {
+    margin-bottom: 16px;
+    font-size: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  #controls input[type="number"] {
+    width: 60px;
+    padding: 4px;
+  }
+  #controls input[type="file"] {
+    margin-right: 4px;
+  }
+  #controls button {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    background: #00c300;
+    color: #fff;
+    cursor: pointer;
+  }
+  #controls button:hover {
+    background: #009a00;
+  }
+  .section-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 16px;
+  }
+  .list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+  .list-item:last-of-type {
+    margin-bottom: 0;
+  }
+  .item-text {
+    flex: 1;
+    margin-right: 12px;
+  }
+  .item-text .title {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.4;
+    margin-bottom: 6px;
+    outline: none;
+  }
+  .item-text .likes {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: #657786;
+  }
+  .item-text .likes svg {
+    width: 18px;
+    height: 18px;
+    margin-right: 4px;
+    fill: none;
+    stroke: #aab8c2;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .item-text .like-count {
+    outline: none;
+    color: #14171a;
+  }
+  .item-thumbnail img {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    object-fit: cover;
+    background: #ddd;
+  }
+  .more-link {
+    text-align: center;
+    color: #1da1f2;
+    margin-top: 20px;
+    font-size: 14px;
+    cursor: default;
+  }
+</style>
+</head>
+<body>
+  <div id="app">
+    <div id="controls">
+      <label>記事数: <input type="number" id="numItems" min="1" value="3" /></label>
+      <input type="file" id="thumbnailInput" accept="image/*" />
+      <label for="thumbnailInput">サムネイル画像</label>
+      <button id="generateBtn" type="button">リスト生成</button>
+    </div>
+    <div class="section-title">人気記事</div>
+    <div id="listContainer"></div>
+    <div class="more-link">もっとみる</div>
+  </div>
+
+  <script>
+    let thumbnailUrl = "";
+
+    // Generate list items based on the specified count
+    function generateList() {
+      const countInput = document.getElementById("numItems");
+      let count = parseInt(countInput.value, 10);
+      if (isNaN(count) || count < 1) {
+        count = 1;
+        countInput.value = 1;
+      }
+      const container = document.getElementById("listContainer");
+      container.innerHTML = "";
+      for (let i = 0; i < count; i++) {
+        const item = document.createElement("div");
+        item.className = "list-item";
+
+        const textDiv = document.createElement("div");
+        textDiv.className = "item-text";
+
+        const titleDiv = document.createElement("div");
+        titleDiv.className = "title";
+        titleDiv.contentEditable = "true";
+        titleDiv.spellcheck = false;
+        titleDiv.textContent = `記事タイトル ${i + 1}`;
+
+        const likesDiv = document.createElement("div");
+        likesDiv.className = "likes";
+        likesDiv.innerHTML = `
+          <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0l-1.06 1.06-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06 7.78 7.78 7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+          <span class="like-count" contenteditable="true" spellcheck="false">0</span>
+        `;
+
+        textDiv.appendChild(titleDiv);
+        textDiv.appendChild(likesDiv);
+
+        const thumbDiv = document.createElement("div");
+        thumbDiv.className = "item-thumbnail";
+        const img = document.createElement("img");
+        img.src = thumbnailUrl || "";
+        thumbDiv.appendChild(img);
+
+        item.appendChild(textDiv);
+        item.appendChild(thumbDiv);
+        container.appendChild(item);
+      }
+    }
+
+    // Handle thumbnail upload
+    document.getElementById("thumbnailInput").addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        thumbnailUrl = event.target.result;
+        // Update all thumbnails in existing list
+        document.querySelectorAll(".item-thumbnail img").forEach(function (img) {
+          img.src = thumbnailUrl;
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Generate button event
+    document.getElementById("generateBtn").addEventListener("click", function () {
+      generateList();
+    });
+
+    // Initial list generation
+    generateList();
+  </script>
+</body>
+</html>
