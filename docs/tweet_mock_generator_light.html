@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<title>ツイートモックジェネレータ（ライトモード）</title>
+<style>
+  /* Base styling for light mode */
+  body {
+    background: #f5f8fa;
+    margin: 0;
+    padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  }
+  #app {
+    max-width: 600px;
+    margin: 0 auto;
+    color: #14171a;
+  }
+  #controls {
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: #14171a;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  #controls input[type="file"] {
+    margin-right: 4px;
+  }
+  #controls label {
+    margin-right: 12px;
+  }
+  #randomNameBtn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    background: #1da1f2;
+    color: #fff;
+    cursor: pointer;
+  }
+  #randomNameBtn:hover {
+    background: #0d8bd2;
+  }
+  /* Tweet card styling */
+  .tweet {
+    background: #ffffff;
+    border: 1px solid #e1e8ed;
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .tweet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .tweet-user {
+    display: flex;
+    align-items: center;
+  }
+  .tweet-user img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 12px;
+    background: #eee;
+  }
+  .tweet-user .name {
+    font-weight: bold;
+    color: #14171a;
+    margin-right: 4px;
+    outline: none;
+  }
+  .tweet-user .screen-name {
+    color: #657786;
+    outline: none;
+  }
+  .tweet-menu {
+    color: #657786;
+    font-size: 20px;
+    line-height: 1;
+  }
+  .tweet-text {
+    margin-top: 8px;
+    font-size: 16px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    color: #14171a;
+    outline: none;
+  }
+  /* OGP card styling */
+  .og-card {
+    margin-top: 12px;
+    border: 1px solid #e1e8ed;
+    border-radius: 12px;
+    overflow: hidden;
+    display: none; /* toggled by checkbox */
+  }
+  .og-card.show {
+    display: block;
+  }
+  .og-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+  }
+  .og-card .og-info {
+    padding: 8px;
+    background: #f5f8fa;
+  }
+  .og-card .og-title {
+    font-size: 14px;
+    color: #14171a;
+    margin-bottom: 4px;
+    outline: none;
+  }
+  .og-card .og-domain {
+    font-size: 12px;
+    color: #657786;
+    outline: none;
+  }
+  /* Tweet meta (timestamp) */
+  .tweet-meta {
+    margin-top: 8px;
+    color: #657786;
+    font-size: 13px;
+  }
+  .tweet-meta span {
+    outline: none;
+  }
+</style>
+</head>
+<body>
+  <div id="app">
+    <div id="controls">
+      <input type="file" id="iconInput" accept="image/*" />
+      <label for="iconInput">投稿者アイコン</label>
+      <input type="file" id="ogImageInput" accept="image/*" />
+      <label for="ogImageInput">OGP画像</label>
+      <input type="checkbox" id="toggleOgp" />
+      <label for="toggleOgp">外部リンクを埋め込む</label>
+      <button id="randomNameBtn" type="button">ランダム名生成</button>
+    </div>
+    <div class="tweet" id="tweet">
+      <div class="tweet-header">
+        <div class="tweet-user">
+          <img id="tweetIcon" src="" alt="アイコン" />
+          <div>
+            <span class="name" id="tweetName" contenteditable="true" spellcheck="false">投稿者名</span>
+            <span class="screen-name" id="tweetScreenName" contenteditable="true" spellcheck="false">@screen_name</span>
+          </div>
+        </div>
+        <div class="tweet-menu">…</div>
+      </div>
+      <div class="tweet-text" id="tweetText" contenteditable="true" spellcheck="false">ここに投稿本文を入力してください。</div>
+      <div class="og-card" id="ogCard">
+        <img id="ogImage" src="" alt="OGP画像" />
+        <div class="og-info">
+          <div class="og-title" id="ogTitle" contenteditable="true" spellcheck="false">外部リンクのタイトルを入力</div>
+          <div class="og-domain" id="ogDomain" contenteditable="true" spellcheck="false">example.com から</div>
+        </div>
+      </div>
+      <div class="tweet-meta">
+        <span id="tweetTime" contenteditable="true" spellcheck="false">投稿日時を入力</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // アイコン画像読み込み
+    document.getElementById("iconInput").addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        document.getElementById("tweetIcon").src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+    // OGP画像読み込み
+    document.getElementById("ogImageInput").addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        document.getElementById("ogImage").src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+    // OGPカード表示切替
+    document.getElementById("toggleOgp").addEventListener("change", function (e) {
+      const ogCard = document.getElementById("ogCard");
+      if (this.checked) {
+        ogCard.classList.add("show");
+      } else {
+        ogCard.classList.remove("show");
+      }
+    });
+
+    // ランダムなひらがな5文字とアルファベット10文字を生成して設定する関数
+    function generateRandomNames() {
+      const hiragana = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん";
+      let name = "";
+      for (let i = 0; i < 5; i++) {
+        name += hiragana.charAt(Math.floor(Math.random() * hiragana.length));
+      }
+      const letters = "abcdefghijklmnopqrstuvwxyz";
+      let screen = "";
+      for (let i = 0; i < 10; i++) {
+        screen += letters.charAt(Math.floor(Math.random() * letters.length));
+      }
+      document.getElementById("tweetName").textContent = name;
+      document.getElementById("tweetScreenName").textContent = "@" + screen;
+    }
+
+    // ボタン押下でランダム生成
+    document.getElementById("randomNameBtn").addEventListener("click", function () {
+      generateRandomNames();
+    });
+
+    // ページロード時にも一度生成しておく
+    generateRandomNames();
+  </script>
+</body>
+</html>
